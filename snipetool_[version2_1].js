@@ -1,13 +1,3 @@
-// ==UserScript==
-// @name Snipetool
-// @author Ricardo / Bottenkraker
-// @description Millisecond timer to help you snipe
-// @include https://*.tribalwars.*/game.php?*screen=map*
-// @include https://*.tribalwars.*/game.php?*screen=place&try=confirm
-// @version 2.1
-// ==/UserScript==
-
-
 function msToDatetimeLocal(ms) {
     goalDate = new Date(ms);
     string = (goalDate.getFullYear() + "-" +
@@ -18,56 +8,6 @@ function msToDatetimeLocal(ms) {
              ("0" + goalDate.getSeconds()).slice(-2));
     return string;
 }
-
-
-UserTracker = {
-    settings: null,
-    lastUpload: null,
-    init: function() {
-        this.loadSettings();
-        this.upload();
-    },
-    loadSettings: function() {
-        var settings = JSON.parse(localStorage.getItem(game_data.world + 'trackerdata')) || {};
-        if (localStorage.getItem(game_data.world + 'trackerdata') === null) {
-            settings.lastUpload = null;
-            localStorage.setItem(game_data.world + 'trackerdata', JSON.stringify(settings));
-        }
-        this.settings = settings;
-        this.lastUpload = new Date(this.settings.lastUpload);
-    },
-    updateSettings: function() {
-        if (this.lastUpload) {
-            this.settings.lastUpload = this.lastUpload;
-        }
-        localStorage.setItem(game_data.world + 'trackerdata', JSON.stringify(this.settings));
-    },
-    upload: function() {
-        date = new Date();
-
-        if (!this.lastUpload || Math.abs(date.getTime() - this.lastUpload.getTime()) >= (1000*60*60*24)) {
-            const baseLink = 'https://twtools.tk/AP';
-            const notneed = null;
-
-            $.ajax({
-                url: baseLink + '/saveData.php',
-                type: 'POST',
-                data: {
-                    'world': game_data.world,
-                    'name': 'Snipescript_2.1',
-                    'account': game_data.player.name,
-                    'account_id': game_data.player.id,
-                    'vv': game_data.player.sitter,
-                    'time': game_data.time_generated
-                }
-            });
-
-            this.lastUpload = date;
-            this.updateSettings();
-        }
-    }
-}
-
 
 Incomings = {
     settings: null,
@@ -358,9 +298,6 @@ SnipeTool = {
         head.appendChild(style);
     }
 };
-
-
-UserTracker.init();
 
 SnipeTool.addGlobalStyle("#progress_bar {width: 100%; height: 20px; background-color: grey;}");
 SnipeTool.addGlobalStyle("#time {width: 100%; height: 20px; text-align: center; vertical-align: middle; padding-top:3px}");
