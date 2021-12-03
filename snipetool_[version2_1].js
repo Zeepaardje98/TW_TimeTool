@@ -64,23 +64,28 @@ var noDateColor = "green";
             var duration = $('#date_arrival span').data('duration') * 1000;
 
             var parent = this;
-            $.get(villageUrl, function (html) {
-                // Get the commands from a different page and show them on the
-                // current page
-                commands = $(html).find("#commands_outgoings, #commands_incomings")[0];
+            $.when(loadRunningCommands(villageUrl).done(function (html) {
+                const commandsTable = $(html).find('.commands-container');
                 var delay = document.createElement("delay");
                 delay.innerHTML = ("<div style='width:100%; height:20px'></div><div width=100%>delay: <input type='number' id='delay' style='width: 100px;'/>     remember: <input type='checkbox' id='remember2'/></div>");
                 form.appendChild(delay);
-                if (commands) {
-                    form.appendChild(commands);
-                    const commandsTable = $('.commands-container');
-                    commandsTable.find('tr:first').append('<th width="12%">Versturen</th>');
+                if (commandsTable.length > 0) {
+                    commandsTable.find('tr:first').append('<th>Send in</th>');
                     commandsTable.find('tr.command-row').each(function () {
                         $(this).css('cursor', 'pointer');
                         const sendTime = ($(this).find('td:last span').data('endtime') * 1000) - duration;
-                        $(this).append(`<td class="sendTime"><b><span style="color: darkblue" class="timer offPack_commandRowTimer" data-endtime="${sendTime / 1000}"></span></b></b><br></td>`);
-                    })
+                        $(this).append(`<td class="sendTime"><b><span class="timer" style="color: darkblue" data-endtime="${sendTime / 1000}"></span></b></b><br></td>`);
+                    }).filter(function () {
+                        return $('img[src*="/return_"], img[src*="/back.png"]', this).length > 0;
+                    }).remove();
+                    if (commandsTable.length > 0) $('#remember2').after(commandsTable);
+                    Timing.tickHandlers.timers.handleTimerEnd = function () {
+                        $(this).text('Too Late!');
+                        $(this).css('color', 'red');
+                    };
+                    Timing.tickHandlers.timers.init();
                 }
+
                 _callback();
 
                 // Select a command, Change color of selected Command. Update
@@ -95,7 +100,8 @@ var noDateColor = "green";
                 $(".widget-command-timer").addClass("timer");
                 Timing.tickHandlers.timers.initTimers('widget-command-timer');
                 Timing.tickHandlers.timers.init();
-            });
+
+            }))
         },
         /* NOTE This doesnt trigger the eventlisteners which update the input of
          *      the snipetool. Fix this */
@@ -227,7 +233,7 @@ var noDateColor = "green";
             });
             timegoal.addEventListener("input", () => {
                 this.timeGoal = (new Date(document.getElementById("timegoal").value)).getTime();
-                if (this.timeGoal != this.prevTimeGoal) {
+                if (this.timeGoal !== this.prevTimeGoal) {
                     this.updateSendtime();
                     this.prevTimeGoal = this.timeGoal;
                 }
@@ -355,5 +361,11 @@ var noDateColor = "green";
             }
         });
         x.observe(document.getElementById('ds_body'), {childList: true});
+    }
+
+    function loadRunningCommands(targetId) {
+        return twLib.get({
+            url: game_data.link_base_pure + 'info_village&id=' + targetId,
+        });
     }
 })();
