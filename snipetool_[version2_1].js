@@ -90,11 +90,16 @@ var noDateColor = "green";
 
                 // Select a command, Change color of selected Command. Update
                 // the selected time/date
-                $(".command-row").click(function () {
-                    $(this).closest("tbody").find("td").css('background-color', '');
-                    $(this).find("td").css("background-color", "white");
-                    parent.fillSnipeTool($(this).find("td")[1].textContent);
-                });
+                commandClick();
+                function commandClick() {
+                    $(".command-row").click(function () {
+                        $(this).closest("tbody").find("td").css('background-color', '');
+                        $(this).find("td").css("background-color", "white");
+                        parent.fillSnipeTool($(this).find("td")[1].textContent);
+                    });
+                }
+                // Expose method
+                window.enableIncomingsClicker = () => commandClick();
 
                 // Add the timer for the command arrivel countdowns
                 $(".widget-command-timer").addClass("timer");
@@ -327,7 +332,7 @@ var noDateColor = "green";
     function startScript() {
         SnipeTool.init();
         Incomings.init();
-
+        // Expose method
         /* Interval for updating the snipetool, or delete it if we don't need
          * it anymore. */
         var update = setInterval(function () {
